@@ -2,6 +2,7 @@ package com.cavcav.Eventify.user.service;
 
 
 import com.cavcav.Eventify.user.dto.ApiResponse;
+import com.cavcav.Eventify.user.dto.FollowStatsDto;
 import com.cavcav.Eventify.user.dto.UserFollowDto;
 import com.cavcav.Eventify.user.dto.UserResponseDTO;
 import com.cavcav.Eventify.user.mapper.UserFollowMapper;
@@ -76,7 +77,7 @@ public class FollowService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        List<UserFollowDto> followDtos=userFollowRepository.findAllByFollowing(user).stream().map(userMapper::toDto).toList();
+        List<UserFollowDto> followDtos = userFollowRepository.findAllByFollowing(user).stream().map(userMapper::toDto).toList();
         return ApiResponse.<List<UserFollowDto>>builder()
                 .success(true)
                 .message("Get all followers successfull")
@@ -84,15 +85,34 @@ public class FollowService {
                 .timestamp(LocalDateTime.now().toString())
                 .build();
     }
+
     public ApiResponse<List<UserFollowDto>> getFollowing(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        List<UserFollowDto> followDtos=userFollowRepository.findAllByFollower(user).stream().map(userMapper::toDto).toList();
+        List<UserFollowDto> followDtos = userFollowRepository.findAllByFollower(user).stream().map(userMapper::toDto).toList();
         return ApiResponse.<List<UserFollowDto>>builder()
                 .success(true)
                 .message("Get all following successfull")
                 .data(followDtos)
+                .timestamp(LocalDateTime.now().toString())
+                .build();
+    }
+
+    public ApiResponse<FollowStatsDto> getFollowStats(UUID userId) {
+        if (!userRepository.existsById(userId)) {
+            return ApiResponse.error("User not found");
+        }
+
+        long followers = userFollowRepository.countByFollowingId(userId);  // Onu takip edenler
+        long following = userFollowRepository.countByFollowerId(userId);  // Onun takip ettikleri
+
+        FollowStatsDto stats = new FollowStatsDto(followers, following);
+
+        return ApiResponse.<FollowStatsDto>builder()
+                .success(true)
+                .message("Get follow stats successful")
+                .data(stats)
                 .timestamp(LocalDateTime.now().toString())
                 .build();
     }

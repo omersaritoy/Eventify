@@ -26,7 +26,7 @@ public class UserController {
         ApiResponse<UserResponseDTO> response = userService.registerUser(registrationDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-    @GetMapping("/getUserById/")
+    @GetMapping("/getUserById/{id}")
     public ResponseEntity<ApiResponse<UserResponseDTO>> getUserById(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getUserById(id));
     }
@@ -34,7 +34,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<List<UserResponseDTO>>> getAllUsers() {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getAllUsers());
     }
-    @DeleteMapping("/deleteById")
+    @DeleteMapping("/deleteById/{id}")
     public ResponseEntity<ApiResponse<UserResponseDTO>> deleteUserById(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.deleteUser(id));
     }

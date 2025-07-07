@@ -26,5 +26,7 @@ public class UserResponseDTO {
     private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Long followersCount;
+    private Long followingCount;
 
 }

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface UserFollowRepository extends JpaRepository<UserFollow, Long> {
@@ -15,4 +16,8 @@ public interface UserFollowRepository extends JpaRepository<UserFollow, Long> {
     List<UserFollow> findAllByFollower(User follower);
 
     List<UserFollow> findAllByFollowing(User following);
+
+    long countByFollowerId(UUID followerId);   // → kaç kişiyi takip ediyor
+
+    long countByFollowingId(UUID followingId);
 }
