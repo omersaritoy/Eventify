@@ -3,6 +3,7 @@ package com.cavcav.Eventify.user.service;
 import com.cavcav.Eventify.user.dto.ApiResponse;
 import com.cavcav.Eventify.user.dto.UserRegisterDto;
 import com.cavcav.Eventify.user.dto.UserResponseDTO;
+import com.cavcav.Eventify.user.dto.UserUpdateDTO;
 import com.cavcav.Eventify.user.mapper.UserMapper;
 import com.cavcav.Eventify.user.model.enums.Role;
 import com.cavcav.Eventify.user.model.User;
@@ -75,6 +76,24 @@ public class UserService {
                 .success(true)
                 .message("Users fetched successfully")
                 .data(users)
+                .timestamp(LocalDateTime.now().toString())
+                .build();
+    }
+    public ApiResponse<UserResponseDTO> updateUser(UUID userId, UserUpdateDTO updateDTO) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        userMapper.updateUserFromDto(updateDTO, user);
+         user=userRepository.save(user);
+        UserResponseDTO responseDTO = userMapper.toUserResponseDTO(user);
+        long followers = userFollowRepository.countByFollowingId(userId);
+        long following = userFollowRepository.countByFollowerId(userId);
+        responseDTO.setFollowersCount(followers);
+        responseDTO.setFollowingCount(following);
+
+        return ApiResponse.<UserResponseDTO>builder()
+                .success(true)
+                .message("User updated successfully")
+                .data(responseDTO)
                 .timestamp(LocalDateTime.now().toString())
                 .build();
     }

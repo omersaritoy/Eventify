@@ -4,6 +4,7 @@ package com.cavcav.Eventify.user.mapper;
 import com.cavcav.Eventify.user.dto.UserRegisterDto;
 import com.cavcav.Eventify.user.dto.UserResponseDTO;
 
+import com.cavcav.Eventify.user.dto.UserUpdateDTO;
 import com.cavcav.Eventify.user.model.User;
 import org.mapstruct.*;
 import org.mapstruct.factory.*;
@@ -17,6 +18,8 @@ public interface UserMapper {
     User toUser(UserRegisterDto userRegisterDto);
 
 
-
     UserResponseDTO toUserResponseDTO(User user);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateUserFromDto(UserUpdateDTO dto, @MappingTarget User user);
 }

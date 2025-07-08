@@ -1,11 +1,7 @@
 package com.cavcav.Eventify.user.model;
 
 
-import com.cavcav.Eventify.event.model.Event;
-import com.cavcav.Eventify.event.model.EventComment;
-import com.cavcav.Eventify.event.model.EventParticipant;
-import com.cavcav.Eventify.event.model.EventRating;
-import com.cavcav.Eventify.notification.model.Notification;
+
 import com.cavcav.Eventify.user.model.enums.Gender;
 import com.cavcav.Eventify.user.model.enums.Role;
 import jakarta.persistence.*;
@@ -52,25 +48,13 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "organizer", cascade = CascadeType.ALL)
-    private List<Event> organizedEvents;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<EventParticipant> participations;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<EventComment> comments;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<EventRating> ratings;
-
     @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL)
     private List<UserFollow> following;
 
     @OneToMany(mappedBy = "following", cascade = CascadeType.ALL)
     private List<UserFollow> followers;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Notification> notifications;
+
+
 
 }

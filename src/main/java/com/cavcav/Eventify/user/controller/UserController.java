@@ -3,6 +3,7 @@ package com.cavcav.Eventify.user.controller;
 import com.cavcav.Eventify.user.dto.UserResponseDTO;
 import com.cavcav.Eventify.user.dto.ApiResponse;
 import com.cavcav.Eventify.user.dto.UserRegisterDto;
+import com.cavcav.Eventify.user.dto.UserUpdateDTO;
 import com.cavcav.Eventify.user.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -34,10 +35,17 @@ public class UserController {
     public ResponseEntity<ApiResponse<List<UserResponseDTO>>> getAllUsers() {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getAllUsers());
     }
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserResponseDTO>> updateUser(
+            @PathVariable UUID id,
+            @RequestBody @Valid UserUpdateDTO updateDTO) {
+        return ResponseEntity.ok(userService.updateUser(id, updateDTO));
+    }
     @DeleteMapping("/deleteById/{id}")
     public ResponseEntity<ApiResponse<UserResponseDTO>> deleteUserById(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.deleteUser(id));
     }
+
     @GetMapping
     public String hello(){
         return "Hello World";
