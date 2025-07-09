@@ -2,6 +2,7 @@ package com.cavcav.Eventify.user.model;
 
 
 
+import com.cavcav.Eventify.event.model.Event;
 import com.cavcav.Eventify.user.model.enums.Gender;
 import com.cavcav.Eventify.user.model.enums.Role;
 import jakarta.persistence.*;
@@ -43,6 +44,9 @@ public class User {
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "organizer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Event> organizedEvents;
 
     @UpdateTimestamp
     @Column(nullable = false)
