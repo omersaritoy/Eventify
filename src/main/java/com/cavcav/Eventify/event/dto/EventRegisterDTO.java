@@ -27,10 +27,10 @@ public class EventRegisterDTO {
 
     public static EventRegisterDTO toDto(Event event) {
         EventRegisterDTO dto = new EventRegisterDTO();
-        dto.setOrganizerId(event.getOrganizer_id());
+        dto.setOrganizerId(event.getOrganizer().getId());
         dto.setTitle(event.getTitle());
         dto.setDescription(event.getDescription());
-        dto.setCategoryId(event.getCategory_id());
+        dto.setCategoryId(event.getCategory().getId());
         dto.setStart(event.getStart());
         dto.setEnd(event.getEnd());
         dto.setLocation(event.getLocation());
@@ -44,10 +44,8 @@ public class EventRegisterDTO {
     }
     public static Event toEntity(EventRegisterDTO dto) {
         Event event = new Event();
-        event.setOrganizer_id(dto.getOrganizerId());
         event.setTitle(dto.getTitle());
         event.setDescription(dto.getDescription());
-        event.setCategory_id(dto.getCategoryId());
         event.setStart(dto.getStart());
         event.setEnd(dto.getEnd());
         event.setLocation(dto.getLocation());

@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/event")
@@ -25,6 +26,10 @@ public class EventController {
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<EventResponseDTO>> create(@RequestBody EventRegisterDTO event) {
         return ResponseEntity.status(HttpStatus.OK).body(eventService.createEvent(event));
+    }
+    @GetMapping("/getByOrganizerId/{id}")
+    public ResponseEntity<ApiResponse<List<EventResponseDTO>>> getByOrganizerId(@PathVariable UUID id) {
+        return ResponseEntity.status(HttpStatus.OK).body(eventService.getEventsByOrganizer(id));
     }
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<EventResponseDTO>> updateEvent(

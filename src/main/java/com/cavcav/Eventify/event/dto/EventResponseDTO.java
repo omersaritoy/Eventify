@@ -31,10 +31,10 @@ public class EventResponseDTO {
     public static EventResponseDTO toDto(Event event) {
         EventResponseDTO dto = new EventResponseDTO();
         dto.setId(event.getId());
-        dto.setOrganizerId(event.getOrganizer_id());
+        dto.setOrganizerId(event.getOrganizer().getId());
         dto.setTitle(event.getTitle());
         dto.setDescription(event.getDescription());
-        dto.setCategoryId(event.getCategory_id());
+        dto.setCategoryId(event.getCategory().getId());
         dto.setStart(event.getStart());
         dto.setEnd(event.getEnd());
         dto.setLocation(event.getLocation());
@@ -52,10 +52,8 @@ public class EventResponseDTO {
     public static Event toEntity(EventResponseDTO dto) {
         Event event = new Event();
         event.setId(dto.getId());
-        event.setOrganizer_id(dto.getOrganizerId());
         event.setTitle(dto.getTitle());
         event.setDescription(dto.getDescription());
-        event.setCategory_id(dto.getCategoryId());
         event.setStart(dto.getStart());
         event.setEnd(dto.getEnd());
         event.setLocation(dto.getLocation());

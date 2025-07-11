@@ -1,5 +1,6 @@
 package com.cavcav.Eventify.event.model;
 
+import com.cavcav.Eventify.category.model.Category;
 import com.cavcav.Eventify.event.model.enums.EventStatus;
 import com.cavcav.Eventify.user.model.User;
 import jakarta.persistence.*;
@@ -21,13 +22,10 @@ public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    //it's our user id
-    @Column(name = "organizer_id", insertable = false, updatable = false)
-    private UUID organizer_id;
     private String title;
     private String description;
-    private Long category_id;
     private LocalDateTime start;
+    @Column(name = "end_time")
     private LocalDateTime end;
     private String location;
     private String address;
@@ -45,4 +43,9 @@ public class Event {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "organizer_id", nullable = false)
     private User organizer;
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
 }
