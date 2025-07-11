@@ -47,5 +47,3 @@ Projeyi yerel makinenizde çalıştırmak için aşağıdaki adımları izleyin:
 - `POST /api/events`: Yeni bir etkinlik oluşturur.
 - `POST /api/follow/{userId}`: Belirtilen kullanıcıyı takip eder.
 
----
-Bu README dosyası, projenin temel bir taslağıdır. İhtiyaçlarınıza göre daha fazla detay ekleyebilirsiniz.
