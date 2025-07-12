@@ -6,22 +6,28 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
-
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "user_follows")
 public class UserFollow {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "follower_id")
+    // The user who follows
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "follower_id", nullable = false)
     private User follower;
 
-    @ManyToOne
-    @JoinColumn(name = "following_id")
+    // The user being followed
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "following_id", nullable = false)
     private User following;
+
     @CreationTimestamp
-    private LocalDateTime createdAt ;
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 }

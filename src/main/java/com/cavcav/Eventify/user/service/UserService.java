@@ -7,6 +7,8 @@ import com.cavcav.Eventify.user.model.enums.Role;
 import com.cavcav.Eventify.user.model.User;
 import com.cavcav.Eventify.user.repository.UserFollowRepository;
 import com.cavcav.Eventify.user.repository.UserRepository;
+import jakarta.mail.MessagingException;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,42 +30,90 @@ public class UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtilities jwtUtilities;
     private final AuthenticationManager authenticationManager;
+    private final EmailService emailService;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    public UserService(UserFollowRepository userFollowRepository, UserRepository userRepository, UserMapper userMapper, BCryptPasswordEncoder passwordEncoder, JwtUtilities jwtUtilities, AuthenticationManager authenticationManager) {
+    public UserService(UserFollowRepository userFollowRepository, UserRepository userRepository, UserMapper userMapper, BCryptPasswordEncoder passwordEncoder, JwtUtilities jwtUtilities, AuthenticationManager authenticationManager, EmailService emailService, RedisTemplate<String, Object> redisTemplate) {
         this.userFollowRepository = userFollowRepository;
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtilities = jwtUtilities;
         this.authenticationManager = authenticationManager;
+        this.emailService = emailService;
+
+        this.redisTemplate = redisTemplate;
     }
 
-    public ApiResponse<UserResponseDTO> registerUser(UserRegisterDto registerDto) {
+    public ApiResponse<UserResponseDTO> registerUser(UserRegisterDto registerDto) throws MessagingException {
+        Optional<User> isExist = userRepository.findByEmail(registerDto.getEmail());
+        if (isExist.isPresent()) {
+            return ApiResponse.error("Email already in use");
+        }
         User user = userMapper.toUser(registerDto);
-        user.setRole(Role.ADMIN);
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRole(Role.USER);
+        user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
+        user.setIsVerified(false);
+        user.setIsActive(false);
         User savedUser = userRepository.save(user);
 
         UserResponseDTO dto = userMapper.toUserResponseDTO(savedUser);
+        String verificationCode = jwtUtilities.generateToken(registerDto.getEmail());
+        verificationCode = verificationCode.trim();
+        System.out.println("token: " + verificationCode);
+        redisTemplate.opsForValue().set("verificationCode:" + user.getId(), verificationCode, 10, TimeUnit.MINUTES);
+
+        emailService.sendMail(registerDto.getEmail(), user.getFirstName(), verificationCode);
 
         return ApiResponse.<UserResponseDTO>builder()
                 .success(true)
-                .message("User registered successfully")
+                .message("User registered successfully, please verify your email address to login.")
                 .data(dto)
+                .timestamp(LocalDateTime.now().toString())
+                .build();
+    }
+    public ApiResponse<?> verifyUser(UUID userId,String token) {
+        String storedCode = (String) redisTemplate.opsForValue().get("verificationCode:" + userId);
+        System.out.println("Redis Value: " + storedCode);
+        if (storedCode == null) {
+            return ApiResponse.error("Verification code not found or expired");
+        }
+        if (!storedCode.equals(token)) {
+            return ApiResponse.error("Invalid verification token");
+        }
+        User user = userRepository.findByEmail(jwtUtilities.extractUsername(token))
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+
+        user.setIsVerified(true);
+        user.setIsActive(true);
+        userRepository.save(user);
+
+        redisTemplate.delete("verificationCode:" + token);
+
+        return ApiResponse.<UserResponseDTO>builder()
+                .success(true)
+                .message("User verified successfully. Your account is now active.")
+                .data(null)
                 .timestamp(LocalDateTime.now().toString())
                 .build();
     }
 
     public ApiResponse<?> login(LoginRequest request) {
+        Optional<User> user = userRepository.findByEmail(request.getEmail());
+        if (user.isEmpty()) ApiResponse.error("User not found");
+
+        if (!user.get().getIsActive())
+            return ApiResponse.error("User is not active");
 
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-        if(authentication.isAuthenticated()) {
-            String token= jwtUtilities.generateToken(request.getEmail());
-            System.out.println("Bearer "+token);
+        if (authentication.isAuthenticated()) {
+            String token = jwtUtilities.generateToken(request.getEmail());
+            System.out.println("Bearer " + token);
             return ApiResponse.builder()
                     .success(true)
                     .message("Login is successful")
-                    .data("Bearer "+token)
+                    .data("Bearer " + token)
                     .timestamp(LocalDateTime.now().toString())
                     .build();
         }
@@ -73,6 +124,8 @@ public class UserService {
     public ApiResponse<UserResponseDTO> getUserById(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        if(!user.getIsActive())
+            return ApiResponse.error("User is not active");
         UserResponseDTO responseDTO = new UserResponseDTO();
         responseDTO = userMapper.toUserResponseDTO(user);
 
@@ -106,11 +159,12 @@ public class UserService {
                 .timestamp(LocalDateTime.now().toString())
                 .build();
     }
+
     public ApiResponse<UserResponseDTO> updateUser(UUID userId, UserUpdateDTO updateDTO) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         userMapper.updateUserFromDto(updateDTO, user);
-         user=userRepository.save(user);
+        user = userRepository.save(user);
         UserResponseDTO responseDTO = userMapper.toUserResponseDTO(user);
         long followers = userFollowRepository.countByFollowingId(userId);
         long following = userFollowRepository.countByFollowerId(userId);
@@ -130,7 +184,7 @@ public class UserService {
             return ApiResponse.error("User not found with id: " + id);
         }
         User user = userRepository.getReferenceById(id);
-        userRepository.delete(user);
+        user.setIsActive(false);
         return ApiResponse.<UserResponseDTO>builder()
                 .success(true)
                 .message("User deleted successfully")

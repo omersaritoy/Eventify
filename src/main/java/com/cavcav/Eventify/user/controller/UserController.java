@@ -1,7 +1,9 @@
 package com.cavcav.Eventify.user.controller;
 
+import com.cavcav.Eventify.event.dto.EventResponseDTO;
 import com.cavcav.Eventify.user.dto.*;
 import com.cavcav.Eventify.user.service.UserService;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +22,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<UserResponseDTO>> registerUser(@RequestBody UserRegisterDto registrationDTO) {
+    public ResponseEntity<ApiResponse<UserResponseDTO>> registerUser(@RequestBody UserRegisterDto registrationDTO) throws MessagingException {
 
         ApiResponse<UserResponseDTO> response = userService.registerUser(registrationDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -52,10 +54,12 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserResponseDTO>> deleteUserById(@PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.deleteUser(id));
     }
-
-    @GetMapping
-    public String hello() {
-        return "Hello World";
+    @PostMapping("/verify/{userId}")
+    public ApiResponse<?> verifyEmail(@PathVariable UUID userId,@RequestParam String token) {
+        return ResponseEntity.status(HttpStatus.OK).body(userService.verifyUser(userId,token)).getBody();
     }
+
+
+
 
 }
