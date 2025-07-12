@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:9.2.0
+    container_name: eventify_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD:
+      MYSQL_DATABASE: eventify-db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - eventify-network
+
+  redis:
+    image: redis:7.2
+    container_name: eventify_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - eventify-network
+
+  app:
+    build: .
+    container_name: eventify_app
+    restart: always
+    depends_on:
+      - mysql
+      - redis
+    ports:
+      - "9090:8084"
+    environment:
+      SPRING_DATASOURCE_URL:
+      SPRING_DATASOURCE_USERNAME:
+      SPRING_DATASOURCE_PASSWORD:
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
+
+      SPRING_REDIS_HOST: eventify_redis
+      SPRING_REDIS_PORT: 6379
+
+      SPRING_APPLICATION_NAME: Eventify
+      SERVER_PORT: 8084
+
+      JWT_KEY:
+      JWT_EXPIRATION: 36000000
+    networks:
+      - eventify-network
+
+volumes:
+  mysql_data:
+
+networks:
+  eventify-network:
+    driver: bridge
