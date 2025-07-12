@@ -1,18 +1,21 @@
 package com.cavcav.Eventify.user.service;
 
-import com.cavcav.Eventify.user.dto.ApiResponse;
-import com.cavcav.Eventify.user.dto.UserRegisterDto;
-import com.cavcav.Eventify.user.dto.UserResponseDTO;
-import com.cavcav.Eventify.user.dto.UserUpdateDTO;
+import com.cavcav.Eventify.security.JwtUtilities;
+import com.cavcav.Eventify.user.dto.*;
 import com.cavcav.Eventify.user.mapper.UserMapper;
 import com.cavcav.Eventify.user.model.enums.Role;
 import com.cavcav.Eventify.user.model.User;
 import com.cavcav.Eventify.user.repository.UserFollowRepository;
 import com.cavcav.Eventify.user.repository.UserRepository;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -21,16 +24,23 @@ public class UserService {
     private final UserFollowRepository userFollowRepository;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtUtilities jwtUtilities;
+    private final AuthenticationManager authenticationManager;
 
-    public UserService(UserFollowRepository userFollowRepository, UserRepository userRepository, UserMapper userMapper) {
+    public UserService(UserFollowRepository userFollowRepository, UserRepository userRepository, UserMapper userMapper, BCryptPasswordEncoder passwordEncoder, JwtUtilities jwtUtilities, AuthenticationManager authenticationManager) {
         this.userFollowRepository = userFollowRepository;
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtilities = jwtUtilities;
+        this.authenticationManager = authenticationManager;
     }
 
     public ApiResponse<UserResponseDTO> registerUser(UserRegisterDto registerDto) {
         User user = userMapper.toUser(registerDto);
-        user.setRole(Role.USER);
+        user.setRole(Role.ADMIN);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         User savedUser = userRepository.save(user);
 
         UserResponseDTO dto = userMapper.toUserResponseDTO(savedUser);
@@ -42,6 +52,23 @@ public class UserService {
                 .timestamp(LocalDateTime.now().toString())
                 .build();
     }
+
+    public ApiResponse<?> login(LoginRequest request) {
+
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        if(authentication.isAuthenticated()) {
+            String token= jwtUtilities.generateToken(request.getEmail());
+            System.out.println("Bearer "+token);
+            return ApiResponse.builder()
+                    .success(true)
+                    .message("Login is successful")
+                    .data("Bearer "+token)
+                    .timestamp(LocalDateTime.now().toString())
+                    .build();
+        }
+        return ApiResponse.error("email or password is incorrect");
+    }
+
 
     public ApiResponse<UserResponseDTO> getUserById(UUID id) {
         User user = userRepository.findById(id)

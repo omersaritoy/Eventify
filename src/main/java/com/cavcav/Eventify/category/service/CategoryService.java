@@ -1,4 +1,4 @@
-package com.cavcav.Eventify.service;
+package com.cavcav.Eventify.category.service;
 
 import com.cavcav.Eventify.category.dto.*;
 import com.cavcav.Eventify.category.mapper.CategoryMapper;

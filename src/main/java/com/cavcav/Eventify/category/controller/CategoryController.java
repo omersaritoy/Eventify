@@ -1,7 +1,7 @@
 package com.cavcav.Eventify.category.controller;
 
 import com.cavcav.Eventify.category.dto.*;
-import com.cavcav.Eventify.service.CategoryService;
+import com.cavcav.Eventify.category.service.CategoryService;
 import com.cavcav.Eventify.user.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,19 +20,19 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
-    @PostMapping
+    @PostMapping("/createCategory")
     public ResponseEntity<ApiResponse<?>> create(@RequestBody CategoryRequest request) {
         ApiResponse<?> response = categoryService.create(request);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @GetMapping
+    @GetMapping("/getAllCategories")
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAll() {
         ApiResponse<List<CategoryResponse>> response = categoryService.getAll();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/getCategoryById/{id}")
     public ResponseEntity<ApiResponse<?>> getById(@PathVariable Long id) {
         ApiResponse<?> response = categoryService.getById(id);
         return ResponseEntity.status(HttpStatus.OK).body(response);

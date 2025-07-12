@@ -1,6 +1,8 @@
 package com.cavcav.Eventify.user.model.enums;
 
-public enum Role {
+import org.springframework.security.core.GrantedAuthority;
+
+public enum Role  {
     ADMIN("Admin"),
     USER("User");
     private String role;
@@ -10,4 +12,6 @@ public enum Role {
     public String getRole() {
         return role;
     }
+
+
 }
